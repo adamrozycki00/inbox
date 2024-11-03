@@ -1,5 +1,9 @@
 spring:
   application:
-    name: demo
+    name: inbox-demo
 server:
   port: 8081
+
+inbox:
+  separator: ":"
+  salt: "19ab80f54cf04b03b032afc0d4d9352f"

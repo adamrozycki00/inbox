@@ -1,12 +1,12 @@
-package com.example.demo.infra;
+package org.acme.inbox.infra;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DemoApplication {
+class InboxApp {
 
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(InboxApp.class, args);
     }
 }
