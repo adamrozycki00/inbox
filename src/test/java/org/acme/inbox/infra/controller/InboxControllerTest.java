@@ -9,7 +9,7 @@ import org.acme.inbox.domain.port.in.GetInboxContentUseCase;
 import org.acme.inbox.domain.port.in.ReplyToInboxUseCase;
 import org.acme.inbox.infra.adapter.restapi.InboxController;
 import org.acme.inbox.infra.adapter.restapi.model.*;
-import org.acme.inbox.infra.bean.TestConfig;
+import org.acme.inbox.infra.bean.UnitTestConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(InboxController.class)
 @ExtendWith(MockitoExtension.class)
-@Import(TestConfig.class)
+@Import(UnitTestConfig.class)
 class InboxControllerTest {
 
     @Autowired

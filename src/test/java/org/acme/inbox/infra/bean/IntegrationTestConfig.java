@@ -20,7 +20,7 @@ public class IntegrationTestConfig {
     private String salt;
 
     @Bean
-    public InboxDbAdapter inboxRepository() {
+    public InboxDbAdapter inboxDbAdapter() {
         return new InboxDbAdapter();
     }
 
@@ -31,7 +31,7 @@ public class IntegrationTestConfig {
 
     @Bean
     public InboxFacade inboxFacade() {
-        return new InboxFacade(inboxRepository(), inboxRepository(), generateSignaturePort());
+        return new InboxFacade(inboxDbAdapter(), inboxDbAdapter(), generateSignaturePort());
     }
 
     @Bean
