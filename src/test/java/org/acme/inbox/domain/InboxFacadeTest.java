@@ -9,6 +9,7 @@ import org.acme.inbox.domain.port.in.GetInboxContentUseCase;
 import org.acme.inbox.domain.port.in.ReplyToInboxUseCase;
 import org.acme.inbox.domain.port.out.GetInboxPort;
 import org.acme.inbox.domain.port.out.SaveInboxPort;
+import org.acme.inbox.infra.adapter.signature.SignatureGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

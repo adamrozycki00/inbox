@@ -1,5 +1,6 @@
 package org.acme.inbox.domain;
 
+import org.acme.inbox.infra.adapter.signature.SignatureGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

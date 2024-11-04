@@ -1,12 +1,13 @@
-package org.acme.inbox.domain;
+package org.acme.inbox.infra.adapter.signature;
 
 import lombok.RequiredArgsConstructor;
+import org.acme.inbox.domain.port.out.GenerateSignaturePort;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import static java.util.Objects.isNull;
 
 @RequiredArgsConstructor
-class SignatureGenerator {
+public class SignatureGenerator implements GenerateSignaturePort {
 
     private final String separator;
     private final String salt;
