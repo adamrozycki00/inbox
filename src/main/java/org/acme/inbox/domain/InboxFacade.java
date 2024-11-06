@@ -1,6 +1,7 @@
 package org.acme.inbox.domain;
 
 import lombok.RequiredArgsConstructor;
+import org.acme.inbox.domain.api.exception.InboxNotFoundException;
 import org.acme.inbox.domain.api.model.InboxModel;
 import org.acme.inbox.domain.api.model.MessageModel;
 import org.acme.inbox.domain.api.port.in.CreateInboxUseCase;
@@ -51,7 +52,7 @@ public class InboxFacade implements CreateInboxUseCase, ReplyToInboxUseCase, Get
                 .signature(userSignature)
                 .createdAt(Instant.now())
                 .build();
-        var inboxModel = getInboxPort.getById(command.inboxId());
+        var inboxModel = getInboxPort.findById(command.inboxId()).orElseThrow(InboxNotFoundException::new);
         Inbox inbox = Inbox.fromModel(inboxModel);
         inbox.validateMessageAllowed(message);
         var inboxIdAndMessage = entry(command.inboxId(), (MessageModel) message);
@@ -60,12 +61,12 @@ public class InboxFacade implements CreateInboxUseCase, ReplyToInboxUseCase, Get
 
     @Override
     public InboxModel getInbox(GetInboxQuery query) {
-        return getInboxPort.getById(query.inboxId());
+        return getInboxPort.findById(query.inboxId()).orElseThrow(InboxNotFoundException::new);
     }
 
     @Override
     public List<? extends MessageModel> getMessages(GetMessagesQuery query) {
-        var inboxModel = getInboxPort.getById(query.inboxId());
+        var inboxModel = getInboxPort.findById(query.inboxId()).orElseThrow(InboxNotFoundException::new);
         var inbox = Inbox.fromModel(inboxModel);
         String userSignature = generateSignaturePort.generate(query.username(), query.secret());
 

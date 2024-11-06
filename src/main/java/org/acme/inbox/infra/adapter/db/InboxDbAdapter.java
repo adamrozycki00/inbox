@@ -7,6 +7,7 @@ import org.acme.inbox.infra.adapter.db.model.Inbox;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InboxDbAdapter implements SaveInboxPort, GetInboxPort {
 
@@ -18,8 +19,9 @@ public class InboxDbAdapter implements SaveInboxPort, GetInboxPort {
     }
 
     @Override
-    public InboxModel getById(String inboxId) {
-        return inboxes.get(inboxId);
+    public Optional<InboxModel> findById(String inboxId) {
+        var result = inboxes.get(inboxId);
+        return Optional.ofNullable(result);
     }
 
     private static Inbox map(InboxModel inboxModel) {

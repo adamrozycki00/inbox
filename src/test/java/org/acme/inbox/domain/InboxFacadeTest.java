@@ -2,6 +2,7 @@ package org.acme.inbox.domain;
 
 import org.acme.inbox.domain.api.exception.AnonymousReplyNotAllowedException;
 import org.acme.inbox.domain.api.exception.InboxExpiredException;
+import org.acme.inbox.domain.api.exception.InboxNotFoundException;
 import org.acme.inbox.domain.api.model.InboxModel;
 import org.acme.inbox.domain.api.model.MessageModel;
 import org.acme.inbox.domain.api.port.in.CreateInboxUseCase;
@@ -86,7 +87,7 @@ class InboxFacadeTest {
         var created = underTest.createInbox(command);
 
         // then
-        InboxModel saved = inboxDbAdapter.getById(created.getId());
+        InboxModel saved = inboxDbAdapter.findById(created.getId()).orElseThrow();
         assertThat(created).isEqualTo(saved);
     }
 
@@ -212,6 +213,18 @@ class InboxFacadeTest {
 
         // then
         assertThat(resultInbox).isEqualTo(expectedInbox);
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenInboxDoesNotExist() {
+        // given that an inbox does not exist
+        var query = GetInboxContentUseCase.GetInboxQuery.withId("nonexistent id");
+
+        // when
+        var caught = catchException(() -> underTest.getInbox(query));
+
+        // then
+        assertThat(caught).isInstanceOf(InboxNotFoundException.class);
     }
 
     @Test
