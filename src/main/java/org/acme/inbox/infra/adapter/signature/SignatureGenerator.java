@@ -1,7 +1,7 @@
 package org.acme.inbox.infra.adapter.signature;
 
 import lombok.RequiredArgsConstructor;
-import org.acme.inbox.domain.port.out.GenerateSignaturePort;
+import org.acme.inbox.domain.api.port.out.GenerateSignaturePort;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import static java.util.Objects.isNull;

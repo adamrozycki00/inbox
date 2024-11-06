@@ -2,42 +2,37 @@ package org.acme.inbox.domain.model;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import org.acme.inbox.domain.model.exception.AnonymousReplyNotAllowedException;
-import org.acme.inbox.domain.model.exception.InboxExpiredException;
+import lombok.Setter;
+import org.acme.inbox.domain.api.exception.AnonymousReplyNotAllowedException;
+import org.acme.inbox.domain.api.exception.InboxExpiredException;
+import org.acme.inbox.domain.api.model.InboxModel;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
-@RequiredArgsConstructor
+@Getter
 @Builder
-@ToString(onlyExplicitlyIncluded = true)
-public class Inbox {
+public class Inbox implements InboxModel {
 
-    @Getter
-    @ToString.Include
+    @Builder.Default
     private final String id = UUID.randomUUID().toString();
     private final String topic;
     private final String ownerSignature;
-    private final LocalDate expirationDate;
+    @Setter
+    private LocalDate expirationDate;
     private final boolean anonSubmissions;
-    @Getter
     private final List<Message> messages = new ArrayList<>();
 
-    public void addMessage(Message message) {
-        validateMessageAllowed(message);
-        messages.add(message);
-    }
-
-    public Info getInfo() {
-        return Info.builder()
-                .topic(topic)
-                .ownerSignature(ownerSignature)
-                .expirationDate(expirationDate)
-                .anonSubmissions(anonSubmissions)
+    public static Inbox fromModel(InboxModel inboxModel) {
+        return Inbox.builder()
+                .id(inboxModel.getId())
+                .topic(inboxModel.getTopic())
+                .ownerSignature(inboxModel.getOwnerSignature())
+                .expirationDate(inboxModel.getExpirationDate())
+                .anonSubmissions(inboxModel.isAnonSubmissions())
                 .build();
     }
 
@@ -45,7 +40,7 @@ public class Inbox {
         return ownerSignature.equals(signature);
     }
 
-    private void validateMessageAllowed(Message message) {
+    public void validateMessageAllowed(Message message) {
         if (this.isExpired()) {
             throw new InboxExpiredException();
         }
@@ -59,7 +54,10 @@ public class Inbox {
         return expirationDate.isBefore(LocalDate.now());
     }
 
-    @Builder
-    public record Info(String topic, String ownerSignature, LocalDate expirationDate, boolean anonSubmissions) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InboxModel inboxModel)) return false;
+        return Objects.equals(id, inboxModel.getId());
     }
 }

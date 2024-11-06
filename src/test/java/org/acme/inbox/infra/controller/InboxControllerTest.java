@@ -2,13 +2,18 @@ package org.acme.inbox.infra.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.acme.inbox.domain.model.Inbox;
-import org.acme.inbox.domain.model.Message;
-import org.acme.inbox.domain.port.in.CreateInboxUseCase;
-import org.acme.inbox.domain.port.in.GetInboxContentUseCase;
-import org.acme.inbox.domain.port.in.ReplyToInboxUseCase;
+import org.acme.inbox.domain.api.model.InboxModel;
+import org.acme.inbox.domain.api.port.in.CreateInboxUseCase;
+import org.acme.inbox.domain.api.port.in.GetInboxContentUseCase;
+import org.acme.inbox.domain.api.port.in.ReplyToInboxUseCase;
 import org.acme.inbox.infra.adapter.restapi.InboxController;
-import org.acme.inbox.infra.adapter.restapi.model.*;
+import org.acme.inbox.infra.adapter.restapi.model.CreateInboxRequest;
+import org.acme.inbox.infra.adapter.restapi.model.CreateInboxResponse;
+import org.acme.inbox.infra.adapter.restapi.model.Inbox;
+import org.acme.inbox.infra.adapter.restapi.model.InboxInfoResponse;
+import org.acme.inbox.infra.adapter.restapi.model.InboxMessagesResponse;
+import org.acme.inbox.infra.adapter.restapi.model.Message;
+import org.acme.inbox.infra.adapter.restapi.model.ReplyToInboxRequest;
 import org.acme.inbox.infra.bean.UnitTestConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +29,7 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -52,7 +58,7 @@ class InboxControllerTest {
     void shouldReturnCreatedWhenCreatingInbox() {
         // given
         var dummyRequest = CreateInboxRequest.builder().daysToExpire(1).build();
-        Inbox dummyInbox = Inbox.builder().build();
+        InboxModel dummyInbox = Inbox.builder().build();
         when(createInboxUseCaseMock.createInbox(any())).thenReturn(dummyInbox);
 
         // when
@@ -156,7 +162,7 @@ class InboxControllerTest {
     @SneakyThrows
     void shouldReturnOkWhenPresentingInboxInfo() {
         // given
-        when(getInboxContentUseCaseMock.getInboxInfo(any())).thenReturn(Inbox.Info.builder().build());
+        when(getInboxContentUseCaseMock.getInbox(any())).thenReturn(Inbox.builder().build());
 
         // when
         mvc.perform(get("/api/inboxes/{id}", "any-id"))
@@ -168,20 +174,20 @@ class InboxControllerTest {
     @SneakyThrows
     void shouldRespondWithInboxInfo() {
         // given
-        var expectedInboxInfo = Inbox.Info.builder()
+        var expectedInboxInfo = Inbox.builder()
                 .topic("topic")
-                .ownerSignature("owner:signature")
+                .ownerSignature("owner:getSignature")
                 .expirationDate(LocalDate.now().plusDays(10))
                 .anonSubmissions(true)
                 .build();
         var expectedResponse = InboxInfoResponse.builder()
                 .topic("topic")
-                .ownerSignature("owner:signature")
+                .ownerSignature("owner:getSignature")
                 .expirationDate(LocalDate.now().plusDays(10))
                 .anonSubmissions(true)
                 .build();
-        var query = GetInboxContentUseCase.InfoQuery.withId("any-id");
-        when(getInboxContentUseCaseMock.getInboxInfo(query)).thenReturn(expectedInboxInfo);
+        var query = GetInboxContentUseCase.GetInboxQuery.withId("any-id");
+        when(getInboxContentUseCaseMock.getInbox(query)).thenReturn(expectedInboxInfo);
 
         // when
         String response = mvc.perform(get("/api/inboxes/{id}", "any-id"))
@@ -197,13 +203,12 @@ class InboxControllerTest {
     @SneakyThrows
     void shouldReturnOKWhenPresentingInboxMessages() {
         // given
-        when(getInboxContentUseCaseMock.getInboxMessages(any())).thenReturn(emptyList());
+        when(getInboxContentUseCaseMock.getMessages(any())).thenReturn(emptyList());
 
         // when
         mvc.perform(get("/api/inboxes/{id}/messages", "any-id")
                         .param("username", "user")
                         .param("secret", "secret"))
-
                 // then
                 .andExpect(status().isOk());
     }
@@ -216,12 +221,12 @@ class InboxControllerTest {
         var message2 = Message.builder().body("message 2").signature("another:hash").build();
         var expectedMessages = List.of(message1, message2);
         var expectedResponse = new InboxMessagesResponse(expectedMessages);
-        var expectedQuery = GetInboxContentUseCase.MessagesQuery.builder()
+        var expectedQuery = GetInboxContentUseCase.GetMessagesQuery.builder()
                 .inboxId("id")
                 .username("owner")
                 .secret("owner-secret")
                 .build();
-        when(getInboxContentUseCaseMock.getInboxMessages(expectedQuery)).thenReturn(expectedMessages);
+        doReturn(expectedMessages).when(getInboxContentUseCaseMock).getMessages(expectedQuery);
 
         // when
         String response = mvc.perform(get("/api/inboxes/{id}/messages", "id")

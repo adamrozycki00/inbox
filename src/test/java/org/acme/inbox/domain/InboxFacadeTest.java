@@ -1,75 +1,93 @@
 package org.acme.inbox.domain;
 
-import org.acme.inbox.domain.model.Inbox;
-import org.acme.inbox.domain.model.Message;
-import org.acme.inbox.domain.model.exception.AnonymousReplyNotAllowedException;
-import org.acme.inbox.domain.model.exception.InboxExpiredException;
-import org.acme.inbox.domain.port.in.CreateInboxUseCase;
-import org.acme.inbox.domain.port.in.GetInboxContentUseCase;
-import org.acme.inbox.domain.port.in.ReplyToInboxUseCase;
-import org.acme.inbox.domain.port.out.GetInboxPort;
-import org.acme.inbox.domain.port.out.SaveInboxPort;
+import org.acme.inbox.domain.api.exception.AnonymousReplyNotAllowedException;
+import org.acme.inbox.domain.api.exception.InboxExpiredException;
+import org.acme.inbox.domain.api.model.InboxModel;
+import org.acme.inbox.domain.api.model.MessageModel;
+import org.acme.inbox.domain.api.port.in.CreateInboxUseCase;
+import org.acme.inbox.domain.api.port.in.GetInboxContentUseCase;
+import org.acme.inbox.domain.api.port.in.ReplyToInboxUseCase;
+import org.acme.inbox.domain.api.port.out.GetInboxPort;
+import org.acme.inbox.domain.api.port.out.GetMessagesFromInboxPort;
+import org.acme.inbox.domain.api.port.out.SaveInboxPort;
+import org.acme.inbox.domain.api.port.out.SaveMessageToInboxPort;
+import org.acme.inbox.domain.fixture.Inbox;
+import org.acme.inbox.domain.fixture.Message;
+import org.acme.inbox.infra.adapter.db.InboxDbAdapter;
+import org.acme.inbox.infra.adapter.db.MessageDbAdapter;
 import org.acme.inbox.infra.adapter.signature.SignatureGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchException;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class InboxFacadeTest {
 
-    @Mock
-    SaveInboxPort saveInboxPort;
-    @Mock
-    GetInboxPort getInboxPort;
-    @Mock
-    SignatureGenerator signatureGenerator;
+    InboxDbAdapter inboxDbAdapter = new InboxDbAdapter();
+    MessageDbAdapter messageDbAdapter = new MessageDbAdapter();
+    SignatureGenerator signatureGenerator = new SignatureGenerator(":", "abcdef");
+
+    SaveInboxPort saveInboxPort = inboxDbAdapter;
+    GetInboxPort getInboxPort = inboxDbAdapter;
+    SaveMessageToInboxPort saveMessageToInboxPort = messageDbAdapter;
+    GetMessagesFromInboxPort getMessagesFromInboxPort = messageDbAdapter;
 
     InboxFacade underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new InboxFacade(saveInboxPort, getInboxPort, signatureGenerator);
+        underTest = new InboxFacade(saveInboxPort, getInboxPort, saveMessageToInboxPort, getMessagesFromInboxPort, signatureGenerator);
     }
 
     @Test
     void shouldCreateInbox() {
         // given
         var expectedInbox = Inbox.builder()
-                .topic("My topic")
-                .ownerSignature("owner:hash")
+                .topic("my topic")
                 .expirationDate(LocalDate.now().plusDays(30))
                 .anonSubmissions(true)
                 .build();
         var command = CreateInboxUseCase.Command.builder()
-                .topic("My topic")
+                .topic("my topic")
                 .username("owner")
                 .secret("owner secret")
                 .daysToExpire(30)
                 .anonSubmissions(true)
                 .build();
-        when(signatureGenerator.generate("owner", "owner secret")).thenReturn("owner:hash");
 
         // when
-        Inbox resultInbox = underTest.createInbox(command);
+        var resultInbox = underTest.createInbox(command);
 
         // then
-        assertThat(resultInbox).usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedInbox);
+        assertThat(resultInbox)
+                .usingRecursiveComparison().ignoringFields("id", "ownerSignature", "messages")
+                .isEqualTo(expectedInbox);
+    }
 
-        // and
-        verify(saveInboxPort).save(resultInbox);
+    @Test
+    void shouldSaveCreatedInbox() {
+        // given
+        var command = CreateInboxUseCase.Command.builder()
+                .topic("my topic")
+                .username("owner")
+                .secret("owner secret")
+                .daysToExpire(30)
+                .anonSubmissions(true)
+                .build();
+
+        // when
+        var created = underTest.createInbox(command);
+
+        // then
+        InboxModel saved = inboxDbAdapter.getById(created.getId());
+        assertThat(created).isEqualTo(saved);
     }
 
     @ParameterizedTest
@@ -77,7 +95,7 @@ class InboxFacadeTest {
     void shouldNotCreateInboxWithPassedExpirationDate(int daysToExpire) {
         // when
         var caught = catchException(() -> CreateInboxUseCase.Command.builder()
-                .topic("My topic")
+                .topic("my topic")
                 .username("owner")
                 .secret("owner secret")
                 .daysToExpire(daysToExpire)
@@ -89,182 +107,162 @@ class InboxFacadeTest {
     }
 
     @Test
-    void shouldSaveReplyInCorrectInbox() {
-        // given
+    void shouldSaveReplyToCorrectInbox() {
+        // given that an inbox exists
         var inbox = Inbox.builder()
-                .expirationDate(LocalDate.now().plusDays(10))
+                .id("inbox id")
+                .expirationDate(LocalDate.now().plusDays(30))
                 .build();
+        saveInboxPort.save(inbox);
         var command = ReplyToInboxUseCase.Command.builder()
                 .inboxId(inbox.getId())
                 .username("user")
                 .secret("user secret")
-                .messageBody("message body")
+                .messageBody("my message")
                 .build();
-        var expectedMessage = Message.builder()
-                .body("message body")
-                .signature("user:hash")
-                .build();
-        when(signatureGenerator.generate("user", "user secret")).thenReturn("user:hash");
-        when(getInboxPort.getInbox(inbox.getId())).thenReturn(inbox);
 
-        // when
-        Message reply = underTest.replyToInbox(command);
+        // when replying to that inbox
+        underTest.replyToInbox(command);
 
-        // then
-        assertThat(reply).usingRecursiveComparison().ignoringFields("createdAt").isEqualTo(expectedMessage);
-        assertThat(inbox.getMessages()).contains(reply);
+        // then the message is saved to the same inbox
+        var savedToInbox = getMessagesFromInboxPort.getByInboxId(inbox.getId());
+        assertThat(savedToInbox.stream().map(MessageModel::getBody)).anyMatch("my message"::equals);
     }
 
     @Test
     void shouldThrowWhenReplyingToInboxAfterItsExpirationDate() {
-        // given
+        // given that an inbox expired
         var inbox = Inbox.builder()
-                .expirationDate(LocalDate.now().minusDays(1))
+                .expirationDate(LocalDate.now().minusDays(4))
                 .build();
+        saveInboxPort.save(inbox);
         var command = ReplyToInboxUseCase.Command.builder()
                 .inboxId(inbox.getId())
                 .username("user")
                 .secret("user secret")
-                .messageBody("message body")
+                .messageBody("my message")
                 .build();
-        when(signatureGenerator.generate("user", "user secret")).thenReturn("user:hash");
-        when(getInboxPort.getInbox(inbox.getId())).thenReturn(inbox);
 
-        // when
+        // when replying to that inbox
         var caught = catchException(() -> underTest.replyToInbox(command));
 
-        // then
+        // then the correct exception is thrown
         assertThat(caught).isInstanceOf(InboxExpiredException.class);
     }
 
     @Test
     void shouldAcceptAnonymousReplyIfAnonSubmissionsSet() {
-        // given
+        // given that an inbox can accept anonymous submissions
         var inbox = Inbox.builder()
+                .id("inbox id")
+                .expirationDate(LocalDate.now().plusDays(30))
                 .anonSubmissions(true)
-                .expirationDate(LocalDate.now().plusDays(10))
                 .build();
-        var command = ReplyToInboxUseCase.Command.builder()
+        saveInboxPort.save(inbox);
+        var anonymousCommand = ReplyToInboxUseCase.Command.builder()
                 .inboxId(inbox.getId())
                 .username(null)
                 .secret(null)
-                .messageBody("message body")
+                .messageBody("my message")
                 .build();
-        var expectedMessage = Message.builder()
-                .body("message body")
-                .build();
-        when(signatureGenerator.generate(null, null)).thenReturn(null);
-        when(getInboxPort.getInbox(inbox.getId())).thenReturn(inbox);
 
-        // when
-        Message reply = underTest.replyToInbox(command);
+        // when an anonymous user replies to that inbox
+        underTest.replyToInbox(anonymousCommand);
 
-        // then
-        assertThat(reply).usingRecursiveComparison().ignoringFields("createdAt").isEqualTo(expectedMessage);
-        assertThat(inbox.getMessages()).contains(reply);
+        // then the message is saved to the inbox
+        var savedToInbox = getMessagesFromInboxPort.getByInboxId(inbox.getId());
+        assertThat(savedToInbox.stream().map(MessageModel::getBody)).anyMatch("my message"::equals);
     }
 
     @Test
     void shouldNotAcceptAnonymousReplyIfAnonSubmissionsNotSet() {
-        // given
+        // given that an inbox cannot accept anonymous submissions
         var inbox = Inbox.builder()
+                .expirationDate(LocalDate.now().plusDays(30))
                 .anonSubmissions(false)
-                .expirationDate(LocalDate.now().plusDays(10))
                 .build();
-        var command = ReplyToInboxUseCase.Command.builder()
+        saveInboxPort.save(inbox);
+        var anonymousCommand = ReplyToInboxUseCase.Command.builder()
                 .inboxId(inbox.getId())
                 .username(null)
                 .secret(null)
-                .messageBody("message body")
+                .messageBody("my message")
                 .build();
-        when(getInboxPort.getInbox(inbox.getId())).thenReturn(inbox);
 
-        // when
-        var caught = catchException(() -> underTest.replyToInbox(command));
+        // when an anonymous user replies to that inbox
+        var caught = catchException(() -> underTest.replyToInbox(anonymousCommand));
 
         // then
         assertThat(caught).isInstanceOf(AnonymousReplyNotAllowedException.class);
     }
 
     @Test
-    void shouldRetrieveInboxInfoWithoutMessages() {
-        // given
+    void shouldRetrieveInbox() {
+        // given that an inbox exists
         var inbox = Inbox.builder()
-                .topic("another topic")
-                .ownerSignature("someone:hash")
-                .expirationDate(LocalDate.now().plusDays(10))
-                .anonSubmissions(true)
+                .id("inbox id")
+                .expirationDate(LocalDate.now().plusDays(30))
                 .build();
-        var query = GetInboxContentUseCase.InfoQuery.withId(inbox.getId());
-        var expectedInboxInfo = Inbox.Info.builder()
-                .topic("another topic")
-                .ownerSignature("someone:hash")
-                .expirationDate(LocalDate.now().plusDays(10))
-                .anonSubmissions(true)
-                .build();
-        when(getInboxPort.getInbox(inbox.getId())).thenReturn(inbox);
+        saveInboxPort.save(inbox);
+        var query = GetInboxContentUseCase.GetInboxQuery.withId("inbox id");
+        var expectedInbox = (InboxModel) inbox;
 
         // when
-        Inbox.Info resultInboxInfo = underTest.getInboxInfo(query);
+        var resultInbox = underTest.getInbox(query);
 
         // then
-        assertThat(resultInboxInfo).isEqualTo(expectedInboxInfo);
+        assertThat(resultInbox).isEqualTo(expectedInbox);
     }
 
     @Test
-    void shouldRetrieveInboxMessagesForOwner() {
-        // given
-        var inbox = Inbox.builder()
-                .topic("another topic")
-                .ownerSignature("owner:hash")
-                .expirationDate(LocalDate.now().plusDays(10))
-                .anonSubmissions(true)
+    void shouldRetrieveInboxMessagesWhenOwnerRequests() {
+        // given that an inbox with messages exists and the owner requests them
+        var createInboxCommand = CreateInboxUseCase.Command.builder()
+                .username("owner")
+                .secret("ownerSecret")
+                .daysToExpire(30)
                 .build();
-        var query = GetInboxContentUseCase.MessagesQuery.builder()
+        InboxModel inbox = underTest.createInbox(createInboxCommand);
+        var message1 = Message.builder().body("message 1").signature("user:hash").build();
+        var message2 = Message.builder().body("message 2").signature("another:hash").build();
+        saveMessageToInboxPort.save(entry(inbox.getId(), message1));
+        saveMessageToInboxPort.save(entry(inbox.getId(), message2));
+
+        var query = GetInboxContentUseCase.GetMessagesQuery.builder()
                 .inboxId(inbox.getId())
                 .username("owner")
                 .secret("ownerSecret")
                 .build();
-        when(signatureGenerator.generate("owner", "ownerSecret")).thenReturn("owner:hash");
-        when(getInboxPort.getInbox(inbox.getId())).thenReturn(inbox);
-
-        var message1 = Message.builder().body("message 1").signature("user:hash").build();
-        var message2 = Message.builder().body("message 2").signature("another:hash").build();
-        inbox.addMessage(message1);
-        inbox.addMessage(message2);
-        var expectedMessages = List.of(message1, message2);
 
         // when
-        List<Message> resultMessages = underTest.getInboxMessages(query);
+        var resultMessages = underTest.getMessages(query);
 
         // then
-        assertThat(resultMessages).isEqualTo(expectedMessages);
+        assertThat(resultMessages.stream().map(MessageModel::getBody)).containsExactlyInAnyOrder("message 1", "message 2");
     }
 
     @Test
     void shouldReturnNoMessagesForNonOwner() {
-        // given
-        var inbox = Inbox.builder()
-                .topic("another topic")
-                .ownerSignature("owner:hash")
-                .expirationDate(LocalDate.now().plusDays(10))
-                .anonSubmissions(true)
+        // given that an inbox with messages exists and a non-owner requests them
+        var createInboxCommand = CreateInboxUseCase.Command.builder()
+                .username("owner")
+                .secret("ownerSecret")
+                .daysToExpire(30)
                 .build();
-        var query = GetInboxContentUseCase.MessagesQuery.builder()
+        InboxModel inbox = underTest.createInbox(createInboxCommand);
+        var message1 = Message.builder().body("message 1").signature("user:hash").build();
+        var message2 = Message.builder().body("message 2").signature("another:hash").build();
+        saveMessageToInboxPort.save(entry(inbox.getId(), message1));
+        saveMessageToInboxPort.save(entry(inbox.getId(), message2));
+
+        var query = GetInboxContentUseCase.GetMessagesQuery.builder()
                 .inboxId(inbox.getId())
                 .username("nonOwner")
                 .secret("nonOwnerSecret")
                 .build();
-        when(signatureGenerator.generate("nonOwner", "nonOwnerSecret")).thenReturn("nonOwner:hash");
-        when(getInboxPort.getInbox(inbox.getId())).thenReturn(inbox);
-
-        var message1 = Message.builder().body("message 1").signature("user:hash").build();
-        var message2 = Message.builder().body("message 2").signature("another:hash").build();
-        inbox.addMessage(message1);
-        inbox.addMessage(message2);
 
         // when
-        List<Message> resultMessages = underTest.getInboxMessages(query);
+        var resultMessages = underTest.getMessages(query);
 
         // then
         assertThat(resultMessages).isEqualTo(emptyList());

@@ -1,4 +1,4 @@
-package org.acme.inbox.domain.port.out;
+package org.acme.inbox.domain.api.port.out;
 
 public interface GenerateSignaturePort {
 

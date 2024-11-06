@@ -1,7 +1,7 @@
 package org.acme.inbox.infra.adapter.restapi.model;
 
 import lombok.Builder;
-import org.acme.inbox.domain.port.in.ReplyToInboxUseCase;
+import org.acme.inbox.domain.api.port.in.ReplyToInboxUseCase;
 
 @Builder
 public record ReplyToInboxRequest(String username, String secret, String messageBody) {

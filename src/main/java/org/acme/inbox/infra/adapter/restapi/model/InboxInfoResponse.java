@@ -1,7 +1,7 @@
 package org.acme.inbox.infra.adapter.restapi.model;
 
 import lombok.Builder;
-import org.acme.inbox.domain.model.Inbox;
+import org.acme.inbox.domain.api.model.InboxModel;
 
 import java.time.LocalDate;
 
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public record InboxInfoResponse(String topic, String ownerSignature, LocalDate expirationDate,
                                 boolean anonSubmissions) {
 
-    public static InboxInfoResponse with(Inbox.Info info) {
-        return new InboxInfoResponse(info.topic(), info.ownerSignature(), info.expirationDate(), info.anonSubmissions());
+    public static InboxInfoResponse with(InboxModel inbox) {
+        return new InboxInfoResponse(inbox.getTopic(), inbox.getOwnerSignature(), inbox.getExpirationDate(), inbox.isAnonSubmissions());
     }
 }

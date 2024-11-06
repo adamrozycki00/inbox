@@ -1,7 +1,7 @@
-package org.acme.inbox.domain.port.in;
+package org.acme.inbox.domain.api.port.in;
 
-import org.acme.inbox.domain.model.Inbox;
 import lombok.Builder;
+import org.acme.inbox.domain.api.model.InboxModel;
 import org.zalando.problem.AbstractThrowableProblem;
 
 import java.util.Map;
@@ -10,7 +10,7 @@ import static org.zalando.problem.Status.BAD_REQUEST;
 
 public interface CreateInboxUseCase {
 
-    Inbox createInbox(Command command);
+    InboxModel createInbox(Command command);
 
     @Builder
     record Command(String username, String secret, String topic, int daysToExpire, boolean anonSubmissions) {

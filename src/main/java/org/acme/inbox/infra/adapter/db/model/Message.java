@@ -1,25 +1,19 @@
-package org.acme.inbox.domain.model;
+package org.acme.inbox.infra.adapter.db.model;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import org.acme.inbox.domain.api.model.MessageModel;
 
 import java.time.Instant;
 import java.util.Objects;
 
-import static java.util.Objects.isNull;
-
-@Getter
+@Value
 @Builder
 public class Message implements MessageModel {
 
-    private final String body;
-    private final Instant createdAt;
-    private final String signature;
-
-    public boolean isAnonymous() {
-        return isNull(signature);
-    }
+    String body;
+    Instant createdAt;
+    String signature;
 
     @Override
     public boolean equals(Object o) {

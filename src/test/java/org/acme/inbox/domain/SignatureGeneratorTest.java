@@ -62,7 +62,7 @@ class SignatureGeneratorTest {
     }
 
     static Object[][] provideNullCredentials() {
-        return new Object[][] {
+        return new Object[][]{
                 {null, "secret"},
                 {"username", null},
                 {null, null}

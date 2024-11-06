@@ -1,4 +1,4 @@
-package org.acme.inbox.domain.model.exception;
+package org.acme.inbox.domain.api.exception;
 
 import org.zalando.problem.AbstractThrowableProblem;
 
