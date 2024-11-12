@@ -10,14 +10,12 @@ import org.acme.inbox.infra.adapter.restapi.InboxController;
 import org.acme.inbox.infra.adapter.restapi.model.CreateInboxRequest;
 import org.acme.inbox.infra.adapter.restapi.model.CreateInboxResponse;
 import org.acme.inbox.infra.adapter.restapi.model.Inbox;
-import org.acme.inbox.infra.adapter.restapi.model.InboxInfoResponse;
 import org.acme.inbox.infra.adapter.restapi.model.InboxMessagesResponse;
+import org.acme.inbox.infra.adapter.restapi.model.InboxResponse;
 import org.acme.inbox.infra.adapter.restapi.model.Message;
 import org.acme.inbox.infra.adapter.restapi.model.ReplyToInboxRequest;
 import org.acme.inbox.infra.bean.UnitTestConfig;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -38,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(InboxController.class)
-@ExtendWith(MockitoExtension.class)
+//@ExtendWith(MockitoExtension.class)
 @Import(UnitTestConfig.class)
 class InboxControllerTest {
 
@@ -180,7 +178,7 @@ class InboxControllerTest {
                 .expirationDate(LocalDate.now().plusDays(10))
                 .anonSubmissions(true)
                 .build();
-        var expectedResponse = InboxInfoResponse.builder()
+        var expectedResponse = InboxResponse.builder()
                 .topic("topic")
                 .ownerSignature("owner:getSignature")
                 .expirationDate(LocalDate.now().plusDays(10))
@@ -195,7 +193,7 @@ class InboxControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         // then
-        var resultInfo = objectMapper.readValue(response, InboxInfoResponse.class);
+        var resultInfo = objectMapper.readValue(response, InboxResponse.class);
         assertThat(resultInfo).isEqualTo(expectedResponse);
     }
 

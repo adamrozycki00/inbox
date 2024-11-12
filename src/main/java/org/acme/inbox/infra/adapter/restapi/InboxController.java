@@ -8,7 +8,7 @@ import org.acme.inbox.domain.api.port.in.GetInboxContentUseCase;
 import org.acme.inbox.domain.api.port.in.ReplyToInboxUseCase;
 import org.acme.inbox.infra.adapter.restapi.model.CreateInboxRequest;
 import org.acme.inbox.infra.adapter.restapi.model.CreateInboxResponse;
-import org.acme.inbox.infra.adapter.restapi.model.InboxInfoResponse;
+import org.acme.inbox.infra.adapter.restapi.model.InboxResponse;
 import org.acme.inbox.infra.adapter.restapi.model.InboxMessagesResponse;
 import org.acme.inbox.infra.adapter.restapi.model.ReplyToInboxRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,10 +53,10 @@ public class InboxController {
 
     @GetMapping("{id}")
     @ResponseStatus(OK)
-    public InboxInfoResponse getInboxInfo(@PathVariable String id) {
+    public InboxResponse getInbox(@PathVariable String id) {
         GetInboxContentUseCase.GetInboxQuery query = GetInboxContentUseCase.GetInboxQuery.withId(id);
         InboxModel inbox = getInboxContentUseCase.getInbox(query);
-        return InboxInfoResponse.with(inbox);
+        return InboxResponse.with(inbox);
     }
 
     @GetMapping("{id}/messages")
