@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.tenetmind</groupId>
             <artifactId>inbox-domain</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
