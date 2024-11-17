@@ -11,17 +11,4 @@
 
     <artifactId>inbox-domain</artifactId>
     <name>Inbox Domain</name>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>problem-spring-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

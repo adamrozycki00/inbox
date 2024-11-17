@@ -32,18 +32,26 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>problem-spring-web</artifactId>
-                <version>${zalando.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>problem-spring-web</artifactId>
+            <version>${zalando.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <finalName>${project.parent.artifactId}-${project.parent.version}</finalName>
@@ -55,7 +63,7 @@
                     <execution>
                         <id>repackage</id>
                         <configuration>
-                            <!-- apply repackaging only in the infra module -->
+                            <!-- Apply repackaging only in the infra module -->
                             <skip>${skip.repackage}</skip>
                         </configuration>
                     </execution>
