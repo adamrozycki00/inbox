@@ -6,6 +6,25 @@ spring:
   application:
     name: inbox-app
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+
 inbox:
   separator: ":"
   salt: "19ab80f54cf04b03b032afc0d4d9352f"
