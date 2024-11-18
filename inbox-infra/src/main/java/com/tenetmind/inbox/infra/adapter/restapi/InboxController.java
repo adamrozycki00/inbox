@@ -35,6 +35,12 @@ public class InboxController {
   private final ReplyToInboxUseCase replyToInboxUseCase;
   private final GetInboxContentUseCase getInboxContentUseCase;
 
+  @GetMapping("/hello")
+  @ResponseStatus(OK)
+  public String hello() {
+    return "Hello!\n";
+  }
+
   @PostMapping
   @ResponseStatus(CREATED)
   public CreateInboxResponse createInbox(@RequestBody CreateInboxRequest request) {
