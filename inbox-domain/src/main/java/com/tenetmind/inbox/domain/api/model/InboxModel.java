@@ -4,15 +4,15 @@ import java.time.LocalDate;
 
 public interface InboxModel {
 
-    String getId();
+  String getId();
 
-    String getTopic();
+  String getTopic();
 
-    String getOwnerSignature();
+  String getOwnerSignature();
 
-    LocalDate getExpirationDate();
+  LocalDate getExpirationDate();
 
-    boolean isAnonSubmissions();
+  boolean isAnonSubmissions();
 
-    boolean equals(Object o);
+  boolean equals(Object o);
 }

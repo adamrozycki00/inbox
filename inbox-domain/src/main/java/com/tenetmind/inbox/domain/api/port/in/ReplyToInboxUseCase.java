@@ -4,9 +4,9 @@ import lombok.Builder;
 
 public interface ReplyToInboxUseCase {
 
-    void replyToInbox(Command command);
+  void replyToInbox(Command command);
 
-    @Builder
-    record Command(String inboxId, String messageBody, String username, String secret) {
-    }
+  @Builder
+  record Command(String inboxId, String messageBody, String username, String secret) {
+  }
 }

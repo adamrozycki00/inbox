@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 class InboxApp {
 
-    public static void main(String[] args) {
-        SpringApplication.run(InboxApp.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(InboxApp.class, args);
+  }
 }

@@ -12,19 +12,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class UnitTestConfig {
 
-    @MockBean
-    public CreateInboxUseCase createInboxUseCaseMock;
+  @MockBean
+  public CreateInboxUseCase createInboxUseCaseMock;
 
-    @MockBean
-    public ReplyToInboxUseCase replyToInboxUseCaseMock;
+  @MockBean
+  public ReplyToInboxUseCase replyToInboxUseCaseMock;
 
-    @MockBean
-    public GetInboxContentUseCase getInboxContentUseCaseMock;
+  @MockBean
+  public GetInboxContentUseCase getInboxContentUseCaseMock;
 
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
-    }
+  @Bean
+  public ObjectMapper objectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    return mapper;
+  }
 }

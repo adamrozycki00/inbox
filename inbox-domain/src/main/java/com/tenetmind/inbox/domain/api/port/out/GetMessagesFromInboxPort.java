@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface GetMessagesFromInboxPort {
 
-    List<? extends MessageModel> getByInboxId(String inboxId);
+  List<? extends MessageModel> getByInboxId(String inboxId);
 }

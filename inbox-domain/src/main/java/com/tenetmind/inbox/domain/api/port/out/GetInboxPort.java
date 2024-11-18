@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface GetInboxPort {
 
-    Optional<InboxModel> findById(String inboxId);
+  Optional<InboxModel> findById(String inboxId);
 }

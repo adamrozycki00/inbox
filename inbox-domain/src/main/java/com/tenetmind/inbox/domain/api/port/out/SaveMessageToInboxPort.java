@@ -6,5 +6,5 @@ import java.util.Map;
 
 public interface SaveMessageToInboxPort {
 
-    void save(Map.Entry<String, MessageModel> inboxIdAndMessage);
+  void save(Map.Entry<String, MessageModel> inboxIdAndMessage);
 }

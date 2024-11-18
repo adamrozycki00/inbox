@@ -12,60 +12,60 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SignatureGeneratorTest {
 
-    static final String SEPARATOR = ":";
-    static final String SALT = "salt";
-    static final String SHA256_REGEX = "[a-fA-F0-9]{64}";
+  static final String SEPARATOR = ":";
+  static final String SALT = "salt";
+  static final String SHA256_REGEX = "[a-fA-F0-9]{64}";
 
-    SignatureGenerator underTest;
+  SignatureGenerator underTest;
 
-    @BeforeEach
-    void setUp() {
-        underTest = new SignatureGenerator(SEPARATOR, SALT);
-    }
+  @BeforeEach
+  void setUp() {
+    underTest = new SignatureGenerator(SEPARATOR, SALT);
+  }
 
-    @Test
-    void shouldGenerateSignature() {
-        // when
-        String signature = underTest.generate("username", "secret");
+  @Test
+  void shouldGenerateSignature() {
+    // when
+    String signature = underTest.generate("username", "secret");
 
-        // then
-        assertNotNull(signature);
-    }
+    // then
+    assertNotNull(signature);
+  }
 
-    @Test
-    void shouldGenerateSignatureStartingWithUsernameAndSeparator() {
-        // when
-        String signature = underTest.generate("username", "secret");
+  @Test
+  void shouldGenerateSignatureStartingWithUsernameAndSeparator() {
+    // when
+    String signature = underTest.generate("username", "secret");
 
-        // then
-        assertTrue(signature.startsWith("username" + SEPARATOR));
-    }
+    // then
+    assertTrue(signature.startsWith("username" + SEPARATOR));
+  }
 
-    @Test
-    void shouldGenerateSignatureContainingSha256Hash() {
-        // when
-        String signature = underTest.generate("username", "secret");
+  @Test
+  void shouldGenerateSignatureContainingSha256Hash() {
+    // when
+    String signature = underTest.generate("username", "secret");
 
-        // then
-        String resultHash = signature.split(SEPARATOR)[1];
-        assertThat(resultHash).matches(SHA256_REGEX);
-    }
+    // then
+    String resultHash = signature.split(SEPARATOR)[1];
+    assertThat(resultHash).matches(SHA256_REGEX);
+  }
 
-    @ParameterizedTest
-    @MethodSource("provideNullCredentials")
-    void shouldReturnNullWhenCredentialsAreNull(String username, String secret) {
-        // when
-        String signature = underTest.generate(username, secret);
+  @ParameterizedTest
+  @MethodSource("provideNullCredentials")
+  void shouldReturnNullWhenCredentialsAreNull(String username, String secret) {
+    // when
+    String signature = underTest.generate(username, secret);
 
-        // then
-        assertThat(signature).isNull();
-    }
+    // then
+    assertThat(signature).isNull();
+  }
 
-    static Object[][] provideNullCredentials() {
-        return new Object[][]{
-                {null, "secret"},
-                {"username", null},
-                {null, null}
-        };
-    }
+  static Object[][] provideNullCredentials() {
+    return new Object[][]{
+        {null, "secret"},
+        {"username", null},
+        {null, null}
+    };
+  }
 }

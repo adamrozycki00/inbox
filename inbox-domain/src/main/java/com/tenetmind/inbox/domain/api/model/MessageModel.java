@@ -4,11 +4,11 @@ import java.time.Instant;
 
 public interface MessageModel {
 
-    String getBody();
+  String getBody();
 
-    Instant getCreatedAt();
+  Instant getCreatedAt();
 
-    String getSignature();
+  String getSignature();
 
-    boolean equals(Object o);
+  boolean equals(Object o);
 }

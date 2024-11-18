@@ -12,29 +12,29 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class Config {
 
-    @Value("${inbox.separator}")
-    private String separator;
+  @Value("${inbox.separator}")
+  private String separator;
 
-    @Value("${inbox.salt}")
-    private String salt;
+  @Value("${inbox.salt}")
+  private String salt;
 
-    @Bean
-    public InboxDbAdapter inboxDbAdapter() {
-        return new InboxDbAdapter();
-    }
+  @Bean
+  public InboxDbAdapter inboxDbAdapter() {
+    return new InboxDbAdapter();
+  }
 
-    @Bean
-    public MessageDbAdapter messageDbAdapter() {
-        return new MessageDbAdapter();
-    }
+  @Bean
+  public MessageDbAdapter messageDbAdapter() {
+    return new MessageDbAdapter();
+  }
 
-    @Bean
-    public GenerateSignaturePort generateSignaturePort() {
-        return new SignatureGenerator(separator, salt);
-    }
+  @Bean
+  public GenerateSignaturePort generateSignaturePort() {
+    return new SignatureGenerator(separator, salt);
+  }
 
-    @Bean
-    public InboxFacade inboxFacade() {
-        return new InboxFacade(inboxDbAdapter(), inboxDbAdapter(), messageDbAdapter(), messageDbAdapter(), generateSignaturePort());
-    }
+  @Bean
+  public InboxFacade inboxFacade() {
+    return new InboxFacade(inboxDbAdapter(), inboxDbAdapter(), messageDbAdapter(), messageDbAdapter(), generateSignaturePort());
+  }
 }
